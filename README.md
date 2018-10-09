@@ -1,7 +1,8 @@
 ember-cli-stickybits
 ==============================================================================
 
-[Short description of the addon.]
+Ember wrapper around [stickybits](https://github.com/dollarshaveclub/stickybits).
+See the demo for examples and usage-infos.
 
 Installation
 ------------------------------------------------------------------------------
@@ -14,7 +15,33 @@ ember install ember-cli-stickybits
 Usage
 ------------------------------------------------------------------------------
 
-[Longer description of how to use the addon in apps.]
+### Component
+
+`ember-cli-stickybits` provides a component which automatically
+handle stickybits lifecycle.
+
+```hbs
+{{#stickybits-element}}
+  My sticky element
+{{/stickybits-element}}
+
+```
+This component supports all stickybits properties.
+eg.
+
+```hbs
+{{#stickybits-element stickyBitStickyOffset=50}}
+  My sticky element
+{{/stickybits-element}}
+
+```
+You can find the list of options [here](https://github.com/dollarshaveclub/stickybits)
+
+### Service
+
+All `stickybits-element` are registered in a `stickybits` service.
+They are stored in a [WeakMap](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/WeakMap).
+Service provides a way to `create`, `update`, `cleanup` stickybitsInstance.
 
 
 Contributing
