@@ -7,7 +7,7 @@
     "stickybits",
     "sticky"
   ],
-  "repository": "",
+  "repository": "https://github.com/concordnow/ember-cli-stickybits",
   "license": "MIT",
   "author": "",
   "directories": {

@@ -22,7 +22,7 @@ Contributing
 
 ### Installation
 
-* `git clone <repository-url>`
+* `git clone https://github.com/concordnow/ember-cli-stickybits`
 * `cd ember-cli-stickybits`
 * `yarn install`
 
