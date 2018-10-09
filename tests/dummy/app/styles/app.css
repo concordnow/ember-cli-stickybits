@@ -1,0 +1,11 @@
+.big-height {
+  height: 2000px;
+}
+
+.custom-sticky {
+  height: 100px;
+  background: red;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+}
