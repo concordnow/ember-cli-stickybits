@@ -5699,6 +5699,10 @@ statuses@~1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.4.0.tgz#bb73d446da2796106efcc1b601a253d6c46bd087"
 
+stickybits@^3.5.6:
+  version "3.5.6"
+  resolved "https://registry.yarnpkg.com/stickybits/-/stickybits-3.5.6.tgz#740925d6de78f7604b1cd69bb8e5cdfdc542f2fe"
+
 strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
