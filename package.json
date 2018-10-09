@@ -1,7 +1,7 @@
 {
   "name": "ember-cli-stickybits",
   "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "Ember wrapper for Stickybits",
   "keywords": [
     "ember-addon",
     "stickybits",
