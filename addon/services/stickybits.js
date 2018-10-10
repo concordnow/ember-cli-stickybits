@@ -3,8 +3,22 @@ import { get, set } from '@ember/object';
 import { assert } from '@ember/debug';
 import stickybits from 'stickybits';
 
+/**
+  Provides stickybits as a service
+  to create, update, destroy stickybits instances
+
+  @class Stickybits
+  @public
+*/
 export default Service.extend({
-  // WeakMap to store stickybits instances
+
+  /**
+    Store all stickybits instances
+    key = target used to create instance
+    value = stickybits instance
+
+    @type WeakMap
+  */
   weakmap: null,
 
   init() {
@@ -12,6 +26,14 @@ export default Service.extend({
     set(this, 'weakmap', new WeakMap());
   },
 
+  /**
+    Create a new stickybits instance
+
+    @method create
+    @param {DOMElement|string} target Target to turn sticky
+    @param {Object} props Stickybits parameter
+    @return {Object} stickybitsInstance Instance newly created
+  */
   create(target, props) {
     let weakmap = get(this, 'weakmap');
     assert('Try to create multiple stickybits instance for the same element', !weakmap.has(target));
@@ -22,6 +44,12 @@ export default Service.extend({
     return stickybitsInstance;
   },
 
+  /**
+    Update an existing stickybits instance
+
+    @method update
+    @param {DOMElement|string} target Target used to create the instance
+  */
   update(target) {
     let weakmap = get(this, 'weakmap');
     let stickybitsInstance = weakmap.get(target);
@@ -30,6 +58,12 @@ export default Service.extend({
     }
   },
 
+  /**
+    Destroy an existing stickybits instance
+
+    @method update
+    @param {DOMElement|string} target Target used to create the instance
+  */
   cleanup(target) {
     let weakmap = get(this, 'weakmap');
     let stickybitsInstance = weakmap.get(target);

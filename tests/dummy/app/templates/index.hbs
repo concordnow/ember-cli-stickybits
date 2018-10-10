@@ -1,0 +1,21 @@
+{{#docs-header
+  githubUrl="https://github.com/concordnow/ember-cli-stickybits"
+as |header|
+}}
+
+  {{#header.link "index"}}
+    Another route
+  {{/header.link}}
+{{/docs-header}}
+
+{{docs-hero}}
+
+{{#docs-demo as |demo|}}
+  {{#demo.example name="my-demo.hbs"}}
+    <div class="big-height">
+      {{#stickybits-element class="custom-sticky"}}
+        I'm a sticky element
+      {{/stickybits-element}}
+    </div>
+  {{/demo.example}}
+{{/docs-demo}}
