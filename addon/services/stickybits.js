@@ -1,6 +1,5 @@
 import Service from '@ember/service';
 import { get, set } from '@ember/object';
-import { assert } from '@ember/debug';
 import stickybits from 'stickybits';
 
 /**
@@ -27,7 +26,9 @@ export default Service.extend({
   },
 
   /**
-    Create a new stickybits instance
+    Create a new stickybits instance.
+    If an instance already exist for the target,
+    return the existing instance.
 
     @method create
     @param {DOMElement|string} target Target to turn sticky
@@ -36,9 +37,12 @@ export default Service.extend({
   */
   create(target, props) {
     let weakmap = get(this, 'weakmap');
-    assert('Try to create multiple stickybits instance for the same element', !weakmap.has(target));
+    let stickybitsInstance = weakmap.get(target);
 
-    let stickybitsInstance = stickybits(target, props);
+    if (stickybitsInstance) {
+      return stickybitsInstance;
+    }
+    stickybitsInstance = stickybits(target, props);
     weakmap.set(target, stickybitsInstance);
 
     return stickybitsInstance;

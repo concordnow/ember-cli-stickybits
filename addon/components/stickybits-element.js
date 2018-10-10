@@ -1,5 +1,5 @@
 import Component from '@ember/component';
-import { get, getProperties } from '@ember/object';
+import { set, get, getProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { debounce } from '@ember/runloop';
 import layout from '../templates/components/stickybits-element';
@@ -18,6 +18,14 @@ import layout from '../templates/components/stickybits-element';
 export default Component.extend({
   layout,
   stickybits: service(),
+
+  /**
+     If false remove sticky behavior
+
+     @argument enabled
+     @type boolean
+  */
+  enabled: true,
 
   /**
     If true listen window resize
@@ -115,10 +123,19 @@ export default Component.extend({
   */
   verticalPosition: undefined,
 
+  /**
+     Last `enabled` state
+
+     @type boolean
+     @private
+  */
+  _lastenabled: true,
+
   didInsertElement() {
     this._super(...arguments);
 
     let target = get(this, 'element');
+    let enabled = get(this, 'enabled');
     let props = getProperties(this, [
       'noStyles',
       'parentClass',
@@ -132,10 +149,71 @@ export default Component.extend({
       'verticalPosition'
     ]);
 
+    set(this, '_lastenabled', enabled);
+    if (!enabled) {
+      return;
+    }
+    this._createStickybits(target, props);
+  },
+
+  didReceiveAttrs() {
+    this._super(...arguments);
+
+    let lastenabled = get(this, '_lastenabled');
+    let enabled = get(this, 'enabled');
+    let target = get(this, 'element');
+
+    if (enabled !== lastenabled) {
+      let props = getProperties(this, [
+        'noStyles',
+        'parentClass',
+        'scrollEl',
+        'stickyBitStickyOffset',
+        'stickyClass',
+        'stuckClass',
+        'useFixed',
+        'useGetBoundingClientRect',
+        'useStickyClasses',
+        'verticalPosition'
+      ]);
+
+      set(this, '_lastenabled', enabled);
+      this._createStickybits(target, props);
+    } else {
+      this._cleanupStickybits(target);
+    }
+  },
+
+  willDestroyElement() {
+    let target = get(this, 'element');
+    this._cleanupStickybits(target);
+    this._super(...arguments);
+  },
+
+  /**
+     Create stickybits instance
+
+     @method _createStickybits
+     @private
+  */
+  _createStickybits(target, props) {
     get(this, 'stickybits').create(target, props);
     if (get(this, 'listenResize')) {
       this._windowResizeHandler = this._onWindowResize.bind(this);
       window.addEventListener('resize', this._windowResizeHandler);
+    }
+  },
+
+  /**
+     Cleanup stickybits instance
+
+     @method _cleanupStickybits
+     @private
+  */
+  _cleanupStickybits(target) {
+    get(this, 'stickybits').cleanup(target);
+    if (this._windowResizeHandler) {
+      window.removeEventListener('resize', this._windowResizeHandler);
     }
   },
 
@@ -153,14 +231,5 @@ export default Component.extend({
       let target = get(this, 'element');
       get(this, 'stickybits').update(target);
     }, get(this, 'resizeDebounce'));
-  },
-
-  willDestroyElement() {
-    let target = get(this, 'element');
-    get(this, 'stickybits').cleanup(target);
-    if (this._windowResizeHandler) {
-      window.removeEventListener('resize', this._windowResizeHandler);
-    }
-    this._super(...arguments);
   }
 });
