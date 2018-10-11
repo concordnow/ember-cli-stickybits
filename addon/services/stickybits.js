@@ -1,5 +1,5 @@
 import Service from '@ember/service';
-import { get, set } from '@ember/object';
+import { computed, get, set } from '@ember/object';
 import stickybits from 'stickybits';
 
 /**
@@ -72,7 +72,25 @@ export default Service.extend({
     let weakmap = get(this, 'weakmap');
     let stickybitsInstance = weakmap.get(target);
     if (stickybitsInstance) {
+      weakmap.delete(target);
       stickybitsInstance.cleanup();
     }
-  }
+  },
+
+  /**
+     true if browser supports sticky natively.
+     Stolen from:
+     https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/positionsticky.js
+
+     @type boolean
+  */
+  hasStickySupport: computed(function() {
+    let prop = 'position:';
+    let value = 'sticky';
+    let el = document.createElement('a');
+    let mStyle = el.style;
+    let prefixes = ["", "-webkit-", "-moz-", "-o-", "-ms-"];
+    mStyle.cssText = prop + prefixes.join(value + ';' + prop).slice(0, -prop.length);
+    return mStyle.position.indexOf(value) !== -1;
+  })
 });

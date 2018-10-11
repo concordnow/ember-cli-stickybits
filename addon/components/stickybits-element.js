@@ -1,7 +1,7 @@
 import Component from '@ember/component';
-import { set, get, getProperties } from '@ember/object';
+import { computed, set, get, getProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { debounce } from '@ember/runloop';
+import { next } from '@ember/runloop';
 import layout from '../templates/components/stickybits-element';
 
 /**
@@ -18,6 +18,8 @@ import layout from '../templates/components/stickybits-element';
 export default Component.extend({
   layout,
   stickybits: service(),
+  resize: service(),
+  scroll: service(),
 
   /**
      If false remove sticky behavior
@@ -28,20 +30,13 @@ export default Component.extend({
   enabled: true,
 
   /**
-    If true listen window resize
+    If true listen window resize and adjust component width
+    according to its parent
 
-    @argument listenResize
+    @argument autoResize
     @type boolean
   */
-  listenResize: false,
-
-  /**
-    Number of milliseconds to debounce stickybits update on resize
-
-    @argument resizeDebounce
-    @type number
-  */
-  resizeDebounce: 200,
+  autoResize: true,
 
   /**
     Stickybits `noStyles` option
@@ -129,12 +124,27 @@ export default Component.extend({
      @type boolean
      @private
   */
-  _lastenabled: true,
+  _lastenabled: undefined,
+
+  noStickySupport: computed.not('stickybits.hasStickySupport'),
+  hasFixedPosition: computed.or('noStickySupport', 'useFixed'),
+  needsResizeHandler: computed.and('hasFixedPosition', 'autoResize'),
+  needsScrollHandler: computed.and('hasFixedPosition', 'autoResize'),
+
+  init() {
+    this._super(...arguments);
+
+    let enabled = get(this, 'enabled');
+    set(this, '_lastenabled', enabled);
+    if (get(this, 'needsResizeHandler')) {
+      get(this, 'resize').on('debouncedDidResize', this, this._resizeHandler);
+      get(this, 'scroll').on('debouncedDidScroll', this, this._scrollHandler);
+    }
+  },
 
   didInsertElement() {
     this._super(...arguments);
 
-    let target = get(this, 'element');
     let enabled = get(this, 'enabled');
     let props = getProperties(this, [
       'noStyles',
@@ -149,11 +159,13 @@ export default Component.extend({
       'verticalPosition'
     ]);
 
-    set(this, '_lastenabled', enabled);
     if (!enabled) {
       return;
     }
-    this._createStickybits(target, props);
+    this._turnOnSticky(props);
+    // Force first scroll handler
+    // if page is displayed already scrolled
+    next(this, this._scrollHandler);
   },
 
   didReceiveAttrs() {
@@ -161,75 +173,110 @@ export default Component.extend({
 
     let lastenabled = get(this, '_lastenabled');
     let enabled = get(this, 'enabled');
-    let target = get(this, 'element');
+    let element = get(this, 'element');
+
+    if (!element) {
+      return;
+    }
 
     if (enabled !== lastenabled) {
-      let props = getProperties(this, [
-        'noStyles',
-        'parentClass',
-        'scrollEl',
-        'stickyBitStickyOffset',
-        'stickyClass',
-        'stuckClass',
-        'useFixed',
-        'useGetBoundingClientRect',
-        'useStickyClasses',
-        'verticalPosition'
-      ]);
+      if (enabled) {
+        let props = getProperties(this, [
+          'noStyles',
+          'parentClass',
+          'scrollEl',
+          'stickyBitStickyOffset',
+          'stickyClass',
+          'stuckClass',
+          'useFixed',
+          'useGetBoundingClientRect',
+          'useStickyClasses',
+          'verticalPosition'
+        ]);
 
+        this._turnOnSticky(props);
+      } else {
+        this._turnOffSticky();
+      }
       set(this, '_lastenabled', enabled);
-      this._createStickybits(target, props);
-    } else {
-      this._cleanupStickybits(target);
     }
   },
 
   willDestroyElement() {
-    let target = get(this, 'element');
-    this._cleanupStickybits(target);
+    get(this, 'resize').off('debouncedDidResize', this, this._resizeHandler);
+    get(this, 'scroll').off('debouncedDidScroll', this, this._scrollHandler);
+    this._turnOffSticky();
     this._super(...arguments);
   },
 
   /**
-     Create stickybits instance
+     Turn on sticky behavior
 
-     @method _createStickybits
+     @method _turnOnSticky
      @private
   */
-  _createStickybits(target, props) {
-    get(this, 'stickybits').create(target, props);
-    if (get(this, 'listenResize')) {
-      this._windowResizeHandler = this._onWindowResize.bind(this);
-      window.addEventListener('resize', this._windowResizeHandler);
-    }
+  _turnOnSticky(props) {
+    let element = get(this, 'element');
+    get(this, 'stickybits').create(element, props);
   },
 
   /**
-     Cleanup stickybits instance
+     Turn off sticky behavior
 
-     @method _cleanupStickybits
+     @method _turnOffSticky
      @private
   */
-  _cleanupStickybits(target) {
-    get(this, 'stickybits').cleanup(target);
-    if (this._windowResizeHandler) {
-      window.removeEventListener('resize', this._windowResizeHandler);
+  _turnOffSticky() {
+    let element = get(this, 'element');
+    if (get(this, 'needsResizeHandler')) {
+      element.style.width = '';
     }
+    element.style.top = '';
+    element.style.position = '';
+
+    get(this, 'stickybits').cleanup(element);
   },
 
   /**
-    Update stickybits instance if window is resized
+     Update stickybits instance if window is resized
 
-    @method _onWindowResize
-    @private
+     @method _resizeHandler
+     @private
   */
-  _onWindowResize() {
-    debounce(() => {
-      if (get(this, 'isDestroying') || get(this, 'isDestroyed')) {
-        return;
-      }
-      let target = get(this, 'element');
-      get(this, 'stickybits').update(target);
-    }, get(this, 'resizeDebounce'));
+  _resizeHandler() {
+    if (get(this, 'isDestroying') || get(this, 'isDestroyed')) {
+      return;
+    }
+    if (!get(this, 'needsResizeHandler')) {
+      return;
+    }
+    let element = get(this, 'element');
+    let parentWidth = element.parentElement.offsetWidth;
+    if (element.offsetWidth !== parentWidth) {
+      element.style.width = `${parentWidth}px`;
+    }
+    get(this, 'stickybits').update(element);
+  },
+
+  /**
+     Update stickybits instance if window is scrolled
+
+     @method _scrollHandler
+     @private
+  */
+  _scrollHandler() {
+    if (get(this, 'isDestroying') || get(this, 'isDestroyed')) {
+      return;
+    }
+    if (!get(this, 'needsScrollHandler')) {
+      return;
+    }
+    let element = get(this, 'element');
+    let parentWidth = element.parentElement.offsetWidth;
+
+    if (element.offsetWidth !== parentWidth) {
+      element.style.width = `${parentWidth}px`;
+    }
+    get(this, 'stickybits').update(element);
   }
 });
