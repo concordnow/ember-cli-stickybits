@@ -124,7 +124,7 @@ export default Component.extend({
      @type boolean
      @private
   */
-  _lastenabled: undefined,
+  _lastEnabled: undefined,
 
   noStickySupport: computed.not('stickybits.hasStickySupport'),
   hasFixedPosition: computed.or('noStickySupport', 'useFixed'),
@@ -135,7 +135,7 @@ export default Component.extend({
     this._super(...arguments);
 
     let enabled = get(this, 'enabled');
-    set(this, '_lastenabled', enabled);
+    set(this, '_lastEnabled', enabled);
     if (get(this, 'needsResizeHandler')) {
       get(this, 'resize').on('debouncedDidResize', this, this._resizeHandler);
       get(this, 'scroll').on('debouncedDidScroll', this, this._scrollHandler);
@@ -171,7 +171,7 @@ export default Component.extend({
   didReceiveAttrs() {
     this._super(...arguments);
 
-    let lastenabled = get(this, '_lastenabled');
+    let lastenabled = get(this, '_lastEnabled');
     let enabled = get(this, 'enabled');
     let element = get(this, 'element');
 
@@ -198,7 +198,7 @@ export default Component.extend({
       } else {
         this._turnOffSticky();
       }
-      set(this, '_lastenabled', enabled);
+      set(this, '_lastEnabled', enabled);
     }
   },
 
