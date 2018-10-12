@@ -128,15 +128,14 @@ export default Component.extend({
 
   noStickySupport: computed.not('stickybits.hasStickySupport'),
   hasFixedPosition: computed.or('noStickySupport', 'useFixed'),
-  needsResizeHandler: computed.and('hasFixedPosition', 'autoResize'),
-  needsScrollHandler: computed.and('hasFixedPosition', 'autoResize'),
+  needsEventHandlers: computed.and('hasFixedPosition', 'autoResize'),
 
   init() {
     this._super(...arguments);
 
     let enabled = get(this, 'enabled');
     set(this, '_lastEnabled', enabled);
-    if (get(this, 'needsResizeHandler')) {
+    if (get(this, 'needsEventHandlers')) {
       get(this, 'resize').on('debouncedDidResize', this, this._resizeHandler);
       get(this, 'scroll').on('debouncedDidScroll', this, this._scrollHandler);
     }
@@ -228,7 +227,7 @@ export default Component.extend({
   */
   _turnOffSticky() {
     let element = get(this, 'element');
-    if (get(this, 'needsResizeHandler')) {
+    if (get(this, 'needsEventHandlers')) {
       element.style.width = '';
     }
     element.style.top = '';
@@ -247,7 +246,7 @@ export default Component.extend({
     if (get(this, 'isDestroying') || get(this, 'isDestroyed')) {
       return;
     }
-    if (!get(this, 'needsResizeHandler')) {
+    if (!get(this, 'needsEventHandlers')) {
       return;
     }
     let element = get(this, 'element');
@@ -268,7 +267,7 @@ export default Component.extend({
     if (get(this, 'isDestroying') || get(this, 'isDestroyed')) {
       return;
     }
-    if (!get(this, 'needsScrollHandler')) {
+    if (!get(this, 'needsEventHandlers')) {
       return;
     }
     let element = get(this, 'element');
